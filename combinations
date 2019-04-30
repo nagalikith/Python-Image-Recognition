@@ -1,0 +1,73 @@
+//Reads From CSV chooses all possible combinations for making a Dream11 Team.
+//Should provide CSV with two teams and 11 players with the their positions.
+import itertools
+import csv
+
+#Take the csv as input
+with open("players.csv") as f:
+    reader = csv.reader(f)
+    next(reader) # skip header
+    players_list = [r for r in reader]
+
+d_players = {}
+teamname = ""
+#Makes a dictonary of value with players
+for i in range(1,21):
+    d_players[str(i)] = players_list[i]
+
+teamname = players_list[0][1]
+total_combinations = list(itertools.combinations(range(1,21), 11))
+print("Total Number of Posibilities ",len(total_combinations))
+final_list = []
+for teams in total_combinations:
+    bowlers = 0
+    batsmen = 0
+    allrounders = 0
+    wicketkeepers = 0
+    value = 0
+    team_1 = 0
+    team_2 = 0
+    for player in teams:
+        #Checks the constraints such as blowers,batsmen etc
+        player_stats = d_players.get(str(player))
+        #Team 
+        if (player_stats[1] == teamname) :
+            team_1 += 1
+        else:
+            team_2 += 1
+        #Player Position
+        if (player_stats[2].lower() == "wicket keeper"):
+            wicketkeepers += 1
+            if wicketkeepers > 1:
+                break
+        elif (player_stats[2].lower() == "batsman"):
+            batsmen += 1
+            if batsmen > 5:
+                break
+        elif (player_stats[2].lower() == "all rounder"):
+            allrounders += 1
+            if allrounders > 3:
+                break
+        elif (player_stats[2].lower() == "bowler"):
+            bowlers += 1
+            if bowlers > 5:
+                break
+        #Value
+        value += float(player_stats[3])
+    if ((4 <= team_1 <= 7) & (4 <= team_2 <= 7) & (wicketkeepers == 1 ) & (1 <= allrounders <= 3) & (3 <= batsmen <= 5) & (3 <= bowlers <= 5) & (value <= 100)):
+        final_list.append(teams)
+print(len(final_list))
+
+csv.register_dialect('myDialect',
+quoting=csv.QUOTE_ALL,
+skipinitialspace=True)
+
+with open('final_list.csv', 'w') as writeFile:
+    writer = csv.writer(writeFile , dialect='myDialect')
+    for teams in final_list:
+        names = []
+        for player in teams:
+            player_stats = d_players.get(str(player))
+            names.append(player_stats[0])
+        writer.writerow(names)
+            
